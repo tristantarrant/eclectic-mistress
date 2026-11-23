@@ -130,7 +130,7 @@ static bool write_modgui_text(const std::string& dir)
     const std::string ttl =
         "@prefix modgui: <http://moddevices.com/ns/modgui#> .\n"
         "@prefix lv2:    <http://lv2plug.in/ns/lv2core#> .\n\n"
-        "<http://dataforte.stom-pi/plugins/eclecticmistress>\n"
+        "<http://dataforte.net/plugins/eclecticmistress>\n"
         "    modgui:gui [\n"
         "        modgui:resourcesDirectory <modgui> ;\n"
         "        modgui:iconTemplate <modgui/icon.html> ;\n"

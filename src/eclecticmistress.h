@@ -5,7 +5,7 @@
 
 #include <lv2.h>
 
-#define EMPLUGIN_URI "http://dataforte.stom-pi/plugins/eclecticmistress"
+#define EMPLUGIN_URI "http://dataforte.net/plugins/eclecticmistress"
 
 typedef enum
 {

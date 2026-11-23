@@ -9,7 +9,7 @@
 
 #define DISTRHO_PLUGIN_BRAND   "Dataforte"
 #define DISTRHO_PLUGIN_NAME    "Eclectic Mistress"
-#define DISTRHO_PLUGIN_URI     "http://dataforte.stom-pi/plugins/eclecticmistress"
+#define DISTRHO_PLUGIN_URI     "http://dataforte.net/plugins/eclecticmistress"
 #define DISTRHO_PLUGIN_CLAP_ID "net.dataforte.eclecticmistress"
 
 #define DISTRHO_PLUGIN_BRAND_ID  Dfte
