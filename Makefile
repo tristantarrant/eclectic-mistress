@@ -45,7 +45,7 @@ install: so
 	cp -r $(BUNDLE) "$(INSTALL_DIR)/"
 
 test: so
-	$(CXX) -O2 -o em_test tests/em_test.c -ldl
+	$(CC) -O2 -o em_test tests/em_test.c -ldl -lm
 	./em_test $(CURDIR)/$(SO)
 
 clean:

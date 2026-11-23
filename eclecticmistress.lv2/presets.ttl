@@ -1,0 +1,64 @@
+@prefix lv2:  <http://lv2plug.in/ns/lv2core#> .
+@prefix pset: <http://lv2plug.in/ns/ext/presets#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+# Documented Electric Mistress settings. Knob values are pot positions
+# (0..10 = fraction of clockwise travel), read from the setting diagrams
+# of R. Metzger's Mistress Mystery Page (settings.shtml) for the 1976 V2
+# and the 1980 V5. The two versions have their pots mounted differently;
+# converted to travel fractions they agree within 5%, and the values
+# below are their average. Song credits: gilmourish.com (Gilmour) and
+# Metzger's users list (Summers).
+
+# Animals tour 1977, Electric Mistress V2 + Ram's Head Big Muff:
+# the famous "10 o'clock" setting -- slowest sweep, wide range,
+# moderate colour.
+<http://dataforte.stom-pi/plugins/eclecticmistress#preset-gilmour-animals>
+    a pset:Preset ;
+    lv2:appliesTo <http://dataforte.stom-pi/plugins/eclecticmistress> ;
+    rdfs:label "Gilmour - Animals tour 1977 (Dogs, Pigs)" ;
+    lv2:port
+        [ lv2:symbol "rate" ;   pset:value 0.3 ] ,
+        [ lv2:symbol "range" ;  pset:value 9.2 ] ,
+        [ lv2:symbol "color" ;  pset:value 6.0 ] ,
+        [ lv2:symbol "mix" ;    pset:value 100.0 ] ,
+        [ lv2:symbol "matrix" ; pset:value 0.0 ] .
+
+# The Wall tour 1980-81: same setting with RATE about 22 degrees more
+# clockwise (Metzger), i.e. +0.73 of 10 on a 300-degree pot.
+<http://dataforte.stom-pi/plugins/eclecticmistress#preset-gilmour-wall>
+    a pset:Preset ;
+    lv2:appliesTo <http://dataforte.stom-pi/plugins/eclecticmistress> ;
+    rdfs:label "Gilmour - The Wall tour 1980-81 (Comfortably Numb, Run Like Hell)" ;
+    lv2:port
+        [ lv2:symbol "rate" ;   pset:value 1.0 ] ,
+        [ lv2:symbol "range" ;  pset:value 9.2 ] ,
+        [ lv2:symbol "color" ;  pset:value 6.0 ] ,
+        [ lv2:symbol "mix" ;    pset:value 100.0 ] ,
+        [ lv2:symbol "matrix" ; pset:value 0.0 ] .
+
+# Andy Summers' medium flanging: slow sweep over a narrow range near
+# the short-delay end, more colour. Clean guitar, often with delay.
+<http://dataforte.stom-pi/plugins/eclecticmistress#preset-summers>
+    a pset:Preset ;
+    lv2:appliesTo <http://dataforte.stom-pi/plugins/eclecticmistress> ;
+    rdfs:label "Andy Summers - De Do Do Do, De Da Da Da / Driven to Tears" ;
+    lv2:port
+        [ lv2:symbol "rate" ;   pset:value 1.6 ] ,
+        [ lv2:symbol "range" ;  pset:value 1.0 ] ,
+        [ lv2:symbol "color" ;  pset:value 7.0 ] ,
+        [ lv2:symbol "mix" ;    pset:value 100.0 ] ,
+        [ lv2:symbol "matrix" ; pset:value 0.0 ] .
+
+# Rotating speaker. EHX manual: "rate near maximum, range near minimum,
+# and color approximately half-way"; Metzger's diagrams agree.
+<http://dataforte.stom-pi/plugins/eclecticmistress#preset-leslie>
+    a pset:Preset ;
+    lv2:appliesTo <http://dataforte.stom-pi/plugins/eclecticmistress> ;
+    rdfs:label "Rotating speaker (Leslie simulation)" ;
+    lv2:port
+        [ lv2:symbol "rate" ;   pset:value 9.6 ] ,
+        [ lv2:symbol "range" ;  pset:value 2.0 ] ,
+        [ lv2:symbol "color" ;  pset:value 4.2 ] ,
+        [ lv2:symbol "mix" ;    pset:value 100.0 ] ,
+        [ lv2:symbol "matrix" ; pset:value 0.0 ] .

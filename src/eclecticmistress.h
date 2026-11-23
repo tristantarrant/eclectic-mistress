@@ -13,6 +13,7 @@ typedef enum
   RANGE,
   COLOR,
   MIX,
+  MATRIX,
   EFFECTS_OUTPUT,
   EFFECTS_INPUT,
 } PortIndex;

@@ -2,7 +2,8 @@
  * Eclectic Mistress - LV2 test harness
  *
  * Loads the plugin with the raw LV2 C API, exercises the DSP with a few
- * control/audio scenarios and checks the results.
+ * control/audio scenarios and checks the results against the measured
+ * behaviour of the Electric Mistress V2 that the model encodes.
  *
  * Usage: ./em_test /path/to/eclecticmistress.lv2/eclecticmistress.so
  */
@@ -12,7 +13,6 @@
 #include <string.h>
 #include <math.h>
 #include <dlfcn.h>
-#include <stdint.h>
 
 typedef struct _LV2_Descriptor LV2_Descriptor;
 typedef void *LV2_Handle;
@@ -29,42 +29,84 @@ struct _LV2_Descriptor {
   void *reserved;
 };
 
-const LV2_Descriptor *
-lv2_descriptor(unsigned int);
+enum { RATE, RANGE, COLOR, MIX, MATRIX, NCTRL };
+#define P_OUT 5
+#define P_IN  6
 
-#define SR      48000
-#define BLOCK   1024
-#define NPASS   0
+/* model constants (must match src/eclecticmistress.dsp) */
+#define D_LO  1.2e-3
+#define D_HI  10.7e-3
+
+#define BLOCK 1024
 
 static int failures = 0;
+static const LV2_Descriptor *desc;
+static float ctrl[NCTRL];
+static float in[BLOCK], out[BLOCK];
 
 static void
 check(int ok, const char *msg)
 {
-  if (ok)
-    printf("PASS: %s\n", msg);
-  else {
-    printf("FAIL: %s\n", msg);
+  printf("%s: %s\n", ok ? "PASS" : "FAIL", msg);
+  if (!ok)
     ++failures;
-  }
 }
 
-static int
-finite_buffer(const float *buf, int n)
+static void
+defaults(void)
 {
-  for (int i = 0; i < n; ++i)
-    if (!isfinite(buf[i]))
-      return 0;
-  return 1;
+  ctrl[RATE] = 1.0f; ctrl[RANGE] = 9.2f; ctrl[COLOR] = 6.0f;
+  ctrl[MIX] = 100.0f; ctrl[MATRIX] = 0.0f;
+}
+
+static LV2_Handle
+open_plugin(double sr)
+{
+  LV2_Handle h = desc->instantiate(desc, sr, NULL, NULL);
+  if (!h)
+    return NULL;
+  for (int i = 0; i < NCTRL; ++i)
+    desc->connect_port(h, i, &ctrl[i]);
+  desc->connect_port(h, P_OUT, out);
+  desc->connect_port(h, P_IN, in);
+  desc->activate(h);
+  return h;
+}
+
+static void
+close_plugin(LV2_Handle h)
+{
+  desc->deactivate(h);
+  desc->cleanup(h);
+}
+
+/* Run a sine for `secs` seconds (control smoothing and filters settle),
+   return the output rms over the last block; *finite reports NaN/Inf. */
+static double
+sine_rms(LV2_Handle h, double sr, double freq, double amp, double secs,
+         int *finite)
+{
+  static long phase = 0;
+  int nblocks = (int)(secs * sr / BLOCK) + 1;
+  double acc = 0;
+  *finite = 1;
+  for (int b = 0; b < nblocks; ++b) {
+    for (int i = 0; i < BLOCK; ++i, ++phase)
+      in[i] = (float)(amp * sin(2.0 * M_PI * freq * phase / sr));
+    desc->run(h, BLOCK);
+    for (int i = 0; i < BLOCK; ++i)
+      if (!isfinite(out[i]))
+        *finite = 0;
+  }
+  for (int i = 0; i < BLOCK; ++i)
+    acc += (double)out[i] * out[i];
+  return sqrt(acc / BLOCK);
 }
 
 static double
-rms(const float *buf, int n)
+db(double x)
 {
-  double acc = 0;
-  for (int i = 0; i < n; ++i)
-    acc += (double)buf[i] * buf[i];
-  return sqrt(acc / n);
+  return 20.0 * log10(x + 1e-30);
 }
 
 int
@@ -74,106 +116,120 @@ main(int argc, char **argv)
     fprintf(stderr, "usage: %s plugin.so\n", argv[0]);
     return 1;
   }
-
-  void *handle = dlopen(argv[1], RTLD_NOW);
-  if (!handle) {
+  void *lib = dlopen(argv[1], RTLD_NOW);
+  if (!lib) {
     fprintf(stderr, "cannot dlopen %s: %s\n", argv[1], dlerror());
     return 1;
   }
-
   const LV2_Descriptor *(*desc_fn)(unsigned int) =
-    (const LV2_Descriptor * (*)(unsigned int)) dlsym(handle, "lv2_descriptor");
-  if (!desc_fn) {
-    fprintf(stderr, "no lv2_descriptor symbol\n");
-    return 1;
-  }
-
-  const LV2_Descriptor *desc = desc_fn(0);
+    (const LV2_Descriptor * (*)(unsigned int)) dlsym(lib, "lv2_descriptor");
+  desc = desc_fn ? desc_fn(0) : NULL;
   check(desc != NULL && desc->plugin_uri != NULL, "lv2_descriptor(0)");
   if (!desc)
     return 1;
 
-  LV2_Handle h = desc->instantiate(desc, SR, NULL, NULL);
-  check(h != NULL, "instantiate");
+  const double SR = 48000;
+  int fin;
+  double r, r1, r2;
+  char msg[160];
+
+  defaults();
+  LV2_Handle h = open_plugin(SR);
+  check(h != NULL, "instantiate @48k");
   if (!h)
     return 1;
 
-  float ctrl[4];       /* rate, range, color, mix */
-  float in[BLOCK], out[BLOCK];
-
-  desc->connect_port(h, 0, &ctrl[0]);
-  desc->connect_port(h, 1, &ctrl[1]);
-  desc->connect_port(h, 2, &ctrl[2]);
-  desc->connect_port(h, 3, &ctrl[3]);
-  desc->connect_port(h, 4, out);   /* audio output */
-  desc->connect_port(h, 5, in);    /* audio input */
-  desc->activate(h);
-  check(1, "connect_port + activate");
-
-  /* --- test 1: mix = 0 must bypass (output == input) --------------- */
-  ctrl[0] = 0.9; ctrl[1] = 30; ctrl[2] = 30; ctrl[3] = 0;
-  for (int i = 0; i < BLOCK; ++i)
-    in[i] = sinf(2.0f * (float)M_PI * 1000.0f * i / SR);
-  desc->run(h, BLOCK);
+  /* --- mix = 0 must bypass (output == input) ----------------------- */
+  ctrl[MIX] = 0;
+  sine_rms(h, SR, 1000, 0.5, 0.5, &fin);
   double maxdiff = 0;
   for (int i = 0; i < BLOCK; ++i)
     maxdiff = fmax(maxdiff, fabs((double)out[i] - in[i]));
   check(maxdiff < 1e-6, "mix=0 bypass (max |out-in| < 1e-6)");
+  defaults();
 
-  /* --- test 2: default settings, 1 kHz sine ------------------------ */
-  ctrl[0] = 0.9; ctrl[1] = 30; ctrl[2] = 30; ctrl[3] = 100;
-  desc->run(h, BLOCK);
-  check(finite_buffer(out, BLOCK), "default settings: output finite");
-  double r = rms(out, BLOCK);
-  check(r > 0.01 && r < 5.0, "default settings: sensible output level");
-  printf("      rms(default) = %.4f\n", r);
+  /* --- defaults: sane level ---------------------------------------- */
+  r = sine_rms(h, SR, 1000, 0.5, 1.0, &fin);
+  check(fin && r > 0.01 && r < 2.0, "defaults: finite, sensible level");
+  printf("      rms(defaults) = %.4f\n", r);
 
-  /* --- test 3: filter matrix mode (rate=0), no feedback ------------- */
-  ctrl[0] = 0.0; ctrl[1] = 0; ctrl[2] = 0; ctrl[3] = 100;
-  for (int b = 0; b < 16; ++b) {
-    for (int i = 0; i < BLOCK; ++i)
-      in[i] = sinf(2.0f * (float)M_PI * 1000.0f * (i + b * BLOCK) / SR);
-    desc->run(h, BLOCK);
-  }
-  check(finite_buffer(out, BLOCK), "matrix mode (rate=0, fb=0): output finite");
-  r = rms(out, BLOCK);
-  check(r > 0.01 && r < 5.0, "matrix mode: sensible output level");
-  printf("      rms(matrix) = %.4f\n", r);
-
-  /* --- test 4: extreme feedback both polarities --------------------- */
-  for (int pol = 0; pol < 2; ++pol) {
-    ctrl[0] = 0.5; ctrl[1] = 100; ctrl[2] = pol ? 100 : -100; ctrl[3] = 100;
-    for (int b = 0; b < 32; ++b) {
-      for (int i = 0; i < BLOCK; ++i)
-        in[i] = sinf(2.0f * (float)M_PI * 1000.0f * (i + b * BLOCK) / SR)
-          + 0.5 * sinf(2.0f * (float)M_PI * 437.0f * (i + b * BLOCK) / SR);
-      desc->run(h, BLOCK);
-    }
-    check(finite_buffer(out, BLOCK),
-          pol ? "color=+100 (max positive fb): output finite"
-              : "color=-100 (max negative fb): output finite");
+  /* --- Filter Matrix: delay law D_LO + RANGE/10*(D_HI-D_LO) --------- */
+  /* With COLOR 0 the comb is dry + delayed: notches at (k+1/2)/d, peaks
+     at k/d. Check notch depth relative to the neighbouring peak for a
+     short, a medium and the longest static delay. */
+  ctrl[MATRIX] = 1; ctrl[COLOR] = 0;
+  const float ranges[] = { 0.0f, 1.6316f, 10.0f };
+  for (int k = 0; k < 3; ++k) {
+    ctrl[RANGE] = ranges[k];
+    double d = D_LO + ranges[k] / 10.0 * (D_HI - D_LO);
+    /* pick a notch/peak pair inside the passband (300 Hz .. 6 kHz) */
+    int n = (int)ceil(400.0 * d - 0.5);
+    double f_notch = (n + 0.5) / d, f_peak = (n + 1) / d;
+    double rn = sine_rms(h, SR, f_notch, 0.05, 1.0, &fin);
+    double rp = sine_rms(h, SR, f_peak, 0.05, 1.0, &fin);
+    snprintf(msg, sizeof msg,
+             "matrix RANGE %.2f (d = %.2f ms): notch %.0f Hz %.1f dB below peak %.0f Hz",
+             ranges[k], d * 1e3, f_notch, db(rp / rn), f_peak);
+    check(fin && db(rp / rn) > 30, msg);
   }
 
-  /* --- test 5: long-run stability ------------------------------------ */
-  ctrl[0] = 1.5; ctrl[1] = 100; ctrl[2] = 30; ctrl[3] = 100;
+  /* --- COLOR: positive feedback, max g = 0.5 -> comb peaks +6 dB ----- */
+  ctrl[RANGE] = 1.6316f;   /* d = 2.75 ms, peak at 1/d = 363.6 Hz x 3 */
+  double f_pk = 3.0 / 2.75e-3;
+  ctrl[COLOR] = 0;
+  r1 = sine_rms(h, SR, f_pk, 0.02, 1.0, &fin);
+  ctrl[COLOR] = 10;
+  r2 = sine_rms(h, SR, f_pk, 0.02, 1.0, &fin);
+  snprintf(msg, sizeof msg,
+           "COLOR 10 lifts comb peak by %+.2f dB (g = 0.5 -> +6.02 dB)",
+           db(r2 / r1));
+  check(fin && fabs(db(r2 / r1) - 6.02) < 0.5, msg);
+  defaults();
+
+  /* --- extremes: max everything, both modes -------------------------- */
+  for (int m = 0; m < 2; ++m) {
+    ctrl[RATE] = 10; ctrl[RANGE] = 10; ctrl[COLOR] = 10; ctrl[MATRIX] = m;
+    r = sine_rms(h, SR, 437, 0.9, 2.0, &fin);
+    check(fin && r < 1.0, m ? "all max, matrix: finite, bounded"
+                            : "all max, flange: finite, bounded");
+  }
+  defaults();
+
+  /* --- long run with random controls and noise ----------------------- */
   int stable = 1;
-  for (int b = 0; b < 4096; ++b) {
-    for (int i = 0; i < BLOCK; ++i)
-      in[i] = (rand() % 1000 / 500.0f - 1.0f) * 0.7f;
-    desc->run(h, BLOCK);
-    if (!finite_buffer(out, BLOCK)) {
-      stable = 0;
-      break;
+  srand(1);
+  for (int b = 0; b < 4096 && stable; ++b) {
+    if (b % 16 == 0) {
+      ctrl[RATE] = rand() % 101 / 10.0f;
+      ctrl[RANGE] = rand() % 101 / 10.0f;
+      ctrl[COLOR] = rand() % 101 / 10.0f;
+      ctrl[MIX] = rand() % 101;
+      ctrl[MATRIX] = rand() % 2;
     }
+    for (int i = 0; i < BLOCK; ++i)
+      in[i] = (rand() % 2001 / 1000.0f - 1.0f) * 0.8f;
+    desc->run(h, BLOCK);
+    for (int i = 0; i < BLOCK; ++i)
+      if (!isfinite(out[i]) || fabsf(out[i]) > 2.0f)
+        stable = 0;
   }
-  check(stable, "long run (4096 blocks): no NaN/Inf");
+  check(stable, "4096 blocks noise + random controls: finite, bounded");
+  close_plugin(h);
 
-  desc->deactivate(h);
-  desc->cleanup(h);
-  check(1, "deactivate + cleanup");
+  /* --- other sample rates -------------------------------------------- */
+  const double rates[] = { 44100, 88200, 96000, 192000 };
+  for (int i = 0; i < 4; ++i) {
+    defaults();
+    LV2_Handle h2 = open_plugin(rates[i]);
+    r = h2 ? sine_rms(h2, rates[i], 1000, 0.5, 1.0, &fin) : -1;
+    snprintf(msg, sizeof msg, "@%.0f Hz: finite, sensible level (rms %.3f)",
+             rates[i], r);
+    check(h2 && fin && r > 0.01 && r < 2.0, msg);
+    if (h2)
+      close_plugin(h2);
+  }
 
-  dlclose(handle);
-
+  dlclose(lib);
   printf("\n%s (%d failure%s)\n", failures ? "TESTS FAILED" : "ALL TESTS PASSED",
          failures, failures == 1 ? "" : "s");
   return failures ? 1 : 0;

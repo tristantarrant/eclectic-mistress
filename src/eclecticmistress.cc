@@ -14,19 +14,21 @@ private:
 	double fConst4;
 	double fConst5;
 	double fConst6;
+	FAUSTFLOAT fCheckbox0;
+	FAUSTFLOAT	*fCheckbox0_;
 	FAUSTFLOAT fHslider0;
 	FAUSTFLOAT	*fHslider0_;
-	double fRec2[2];
-	double fConst7;
 	double fRec1[2];
 	FAUSTFLOAT fHslider1;
 	FAUSTFLOAT	*fHslider1_;
 	double fRec3[2];
+	double fConst7;
+	double fRec2[2];
+	int IOTA0;
+	int iConst8;
 	FAUSTFLOAT fHslider2;
 	FAUSTFLOAT	*fHslider2_;
 	double fRec5[2];
-	int IOTA0;
-	int iConst8;
 	double fConst9;
 	double fConst10;
 	double fConst11;
@@ -36,7 +38,7 @@ private:
 	double fConst15;
 	double fRec6[3];
 	double fConst16;
-	double fRec4[1024];
+	double fRec4[4096];
 	double fRec0[3];
 	double fConst17;
 	FAUSTFLOAT fHslider3;
@@ -79,12 +81,12 @@ Dsp::~Dsp() {
 
 inline void Dsp::clear_state_f()
 {
-	for (int l0 = 0; l0 < 2; l0 = l0 + 1) fRec2[l0] = 0.0;
-	for (int l1 = 0; l1 < 2; l1 = l1 + 1) fRec1[l1] = 0.0;
-	for (int l2 = 0; l2 < 2; l2 = l2 + 1) fRec3[l2] = 0.0;
+	for (int l0 = 0; l0 < 2; l0 = l0 + 1) fRec1[l0] = 0.0;
+	for (int l1 = 0; l1 < 2; l1 = l1 + 1) fRec3[l1] = 0.0;
+	for (int l2 = 0; l2 < 2; l2 = l2 + 1) fRec2[l2] = 0.0;
 	for (int l3 = 0; l3 < 2; l3 = l3 + 1) fRec5[l3] = 0.0;
 	for (int l4 = 0; l4 < 3; l4 = l4 + 1) fRec6[l4] = 0.0;
-	for (int l5 = 0; l5 < 1024; l5 = l5 + 1) fRec4[l5] = 0.0;
+	for (int l5 = 0; l5 < 4096; l5 = l5 + 1) fRec4[l5] = 0.0;
 	for (int l6 = 0; l6 < 3; l6 = l6 + 1) fRec0[l6] = 0.0;
 	for (int l7 = 0; l7 < 2; l7 = l7 + 1) fRec7[l7] = 0.0;
 }
@@ -104,8 +106,8 @@ inline void Dsp::init(uint32_t sample_rate)
 	fConst4 = (fConst3 + -1.414213562373095) / fConst1 + 1.0;
 	fConst5 = (fConst3 + 1.414213562373095) / fConst1 + 1.0;
 	fConst6 = 1.0 / fConst5;
-	fConst7 = 1.0 / fConst0;
-	iConst8 = static_cast<int>(0.005 * fConst0) + 2;
+	fConst7 = 0.067 / fConst0;
+	iConst8 = static_cast<int>(0.0107 * fConst0) + 2;
 	fConst9 = std::tan(942.4777960769379 / fConst0);
 	fConst10 = mydsp_faustpower2_f(fConst9);
 	fConst11 = 2.0 * (1.0 - 1.0 / fConst10);
@@ -126,39 +128,43 @@ void Dsp::init_static(uint32_t sample_rate, PluginLV2 *p)
 
 void always_inline Dsp::compute(int count, FAUSTFLOAT *input0, FAUSTFLOAT *output0)
 {
+#define fCheckbox0 (*fCheckbox0_)
 #define fHslider0 (*fHslider0_)
 #define fHslider1 (*fHslider1_)
 #define fHslider2 (*fHslider2_)
 #define fHslider3 (*fHslider3_)
-	double fSlow0 = 0.0010000000000000009 * static_cast<double>(fHslider0);
-	double fSlow1 = 0.0010000000000000009 * static_cast<double>(fHslider1);
-	double fSlow2 = 0.0010000000000000009 * static_cast<double>(fHslider2);
-	double fSlow3 = 0.0010000000000000009 * static_cast<double>(fHslider3);
+	int iSlow0 = static_cast<int>(static_cast<double>(fCheckbox0));
+	double fSlow1 = 0.0010000000000000009 * static_cast<double>(fHslider0);
+	double fSlow2 = 0.0010000000000000009 * static_cast<double>(fHslider1);
+	double fSlow3 = 0.0010000000000000009 * static_cast<double>(fHslider2);
+	double fSlow4 = 0.0010000000000000009 * static_cast<double>(fHslider3);
 	for (int i0 = 0; i0 < count; i0 = i0 + 1) {
-		fRec2[0] = fSlow0 + 0.999 * fRec2[1];
-		fRec1[0] = fRec1[1] + fConst7 * fRec2[0];
-		fRec3[0] = fSlow1 + 0.999 * fRec3[1];
-		double fTemp0 = fConst0 * (2.25e-05 * fRec3[0] * (2.0 * (1.0 - std::fabs(2.0 * (fRec1[0] - std::floor(fRec1[0])) + -1.0)) + -1.0) + 0.00275);
-		double fTemp1 = std::floor(fTemp0);
-		fRec5[0] = fSlow2 + 0.999 * fRec5[1];
-		double fTemp2 = static_cast<double>(input0[i0]);
-		fRec6[0] = fTemp2 - fConst15 * (fConst13 * fRec6[2] + fConst11 * fRec6[1]);
-		fRec4[IOTA0 & 1023] = fConst16 * (fRec6[2] + (fRec6[0] - 2.0 * fRec6[1])) + fRec4[(IOTA0 - (std::min<int>(iConst8, std::max<int>(0, static_cast<int>(std::round(fTemp0)) + -1)) + 1)) & 1023] * std::max<double>(-0.99, std::min<double>(0.99, 0.01 * fRec5[0]));
-		int iTemp3 = static_cast<int>(fTemp0);
-		fRec0[0] = (fTemp0 - fTemp1) * fRec4[(IOTA0 - std::min<int>(iConst8, std::max<int>(0, iTemp3 + 1))) & 1023] + fRec4[IOTA0 & 1023] + fRec4[(IOTA0 - std::min<int>(iConst8, std::max<int>(0, iTemp3))) & 1023] * (fTemp1 + (1.0 - fTemp0)) - fConst6 * (fConst4 * fRec0[2] + fConst2 * fRec0[1]);
-		fRec7[0] = fSlow3 + 0.999 * fRec7[1];
-		output0[i0] = static_cast<FAUSTFLOAT>(fTemp2 * (1.0 - 0.01 * fRec7[0]) + 0.01 * fRec7[0] * tanh(fConst17 * (fRec0[2] + fRec0[0] + 2.0 * fRec0[1])));
-		fRec2[1] = fRec2[0];
+		fRec1[0] = fSlow1 + 0.999 * fRec1[1];
+		fRec3[0] = fSlow2 + 0.999 * fRec3[1];
+		double fTemp0 = fRec2[1] + fConst7 * std::pow(119.40298507462686, 0.1 * fRec3[0]);
+		fRec2[0] = fTemp0 - std::floor(fTemp0);
+		double fTemp1 = fConst0 * (0.0095 * ((iSlow0) ? 0.1 * fRec1[0] : (1.0 - std::fabs(2.0 * fRec2[0] + -1.0)) * (0.095 * fRec1[0] + 0.05)) + 0.0012);
+		double fTemp2 = std::floor(fTemp1);
+		fRec5[0] = fSlow3 + 0.999 * fRec5[1];
+		double fTemp3 = static_cast<double>(input0[i0]);
+		fRec6[0] = fTemp3 - fConst15 * (fConst13 * fRec6[2] + fConst11 * fRec6[1]);
+		fRec4[IOTA0 & 4095] = fConst16 * (fRec6[2] + (fRec6[0] - 2.0 * fRec6[1])) + 0.05 * fRec5[0] * fRec4[(IOTA0 - (std::min<int>(iConst8, std::max<int>(0, static_cast<int>(std::round(fTemp1)) + -1)) + 1)) & 4095];
+		int iTemp4 = static_cast<int>(fTemp1);
+		fRec0[0] = (fTemp1 - fTemp2) * fRec4[(IOTA0 - std::min<int>(iConst8, std::max<int>(0, iTemp4 + 1))) & 4095] + fRec4[IOTA0 & 4095] + fRec4[(IOTA0 - std::min<int>(iConst8, std::max<int>(0, iTemp4))) & 4095] * (fTemp2 + (1.0 - fTemp1)) - fConst6 * (fConst4 * fRec0[2] + fConst2 * fRec0[1]);
+		fRec7[0] = fSlow4 + 0.999 * fRec7[1];
+		output0[i0] = static_cast<FAUSTFLOAT>(fTemp3 * (1.0 - 0.01 * fRec7[0]) + 0.01 * fRec7[0] * tanh(fConst17 * (fRec0[2] + fRec0[0] + 2.0 * fRec0[1])));
 		fRec1[1] = fRec1[0];
 		fRec3[1] = fRec3[0];
-		fRec5[1] = fRec5[0];
+		fRec2[1] = fRec2[0];
 		IOTA0 = IOTA0 + 1;
+		fRec5[1] = fRec5[0];
 		fRec6[2] = fRec6[1];
 		fRec6[1] = fRec6[0];
 		fRec0[2] = fRec0[1];
 		fRec0[1] = fRec0[0];
 		fRec7[1] = fRec7[0];
 	}
+#undef fCheckbox0
 #undef fHslider0
 #undef fHslider1
 #undef fHslider2
@@ -175,17 +181,20 @@ void Dsp::connect(uint32_t port,void* data)
 {
 	switch ((PortIndex)port)
 	{
+	case MATRIX: 
+		fCheckbox0_ = (float*)data; // , 0.0, 0.0, 1.0, 1.0 
+		break;
 	case COLOR: 
-		fHslider2_ = (float*)data; // , 3e+01, -1e+02, 1e+02, 1.0 
+		fHslider2_ = (float*)data; // , 6.0, 0.0, 1e+01, 0.1 
 		break;
 	case MIX: 
 		fHslider3_ = (float*)data; // , 1e+02, 0.0, 1e+02, 1.0 
 		break;
 	case RANGE: 
-		fHslider1_ = (float*)data; // , 3e+01, 0.0, 1e+02, 1.0 
+		fHslider0_ = (float*)data; // , 9.2, 0.0, 1e+01, 0.1 
 		break;
 	case RATE: 
-		fHslider0_ = (float*)data; // , 0.9, 0.0, 3.0, 0.01 
+		fHslider1_ = (float*)data; // , 1.0, 0.0, 1e+01, 0.1 
 		break;
 	default:
 		break;
@@ -211,6 +220,7 @@ void Dsp::del_instance(PluginLV2 *p)
 typedef enum
 {
    COLOR, 
+   MATRIX, 
    MIX, 
    RANGE, 
    RATE, 

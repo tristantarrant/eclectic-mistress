@@ -42,7 +42,7 @@
     lv2:project <http://dataforte.stom-pi/plugins/eclecticmistress> ;
     lv2:optionalFeature lv2:hardRTCapable ;
 
-    lv2:minorVersion 1 ;
+    lv2:minorVersion 2 ;
     lv2:microVersion 0 ;
 
 rdfs:comment """
@@ -59,12 +59,17 @@ Implemented signal path (after the 1976 V2 circuit):
     -> dry + delayed sum -> response-restoration lowpass (6 kHz)
     -> mild saturation -> wet/dry mix.
 
-Controls:
-    RATE   LFO sweep speed in Hz (0 = fixed delay, "Filter Matrix" mode)
-    RANGE  LFO sweep width, % of the full BBD delay range (0.5..5 ms)
-    COLOR  feedback amount and polarity, -100%..+100%
-            (positive reinforces comb peaks, negative inverts feedback)
-    MIX    wet/dry mix, 0..100 %
+Controls (pot positions 0..10, clockwise travel, as on the pedal):
+    RATE    LFO speed, 0.067 Hz .. ~8 Hz (exponential, reverse-log pot)
+    RANGE   sweep width: the delay sweeps from a fixed 1.2 ms up to
+            1.2 .. 10.7 ms; in Filter Matrix mode the static delay
+    COLOR   positive feedback, 0 .. 0.5 (the trimmed maximum)
+    MIX     wet/dry mix, 0..100 % (not on the pedal)
+    MATRIX  FLANGE / FILTER MATRIX switch (stops the LFO)
+
+Presets reproduce documented settings: David Gilmour (Animals tour
+1977, The Wall tour 1980-81), Andy Summers (The Police), and the EHX
+manual's rotating-speaker setting.
 
 Reference: R. Metzger, "The Mistress Mystery Page",
 http://www.metzgerralf.de/elekt/stomp/mistress/index.shtml
@@ -77,28 +82,27 @@ http://www.metzgerralf.de/elekt/stomp/mistress/index.shtml
         lv2:index 0 ;
         lv2:symbol "rate" ;
         lv2:name "RATE";
-        lv2:default 0.9 ;
+        lv2:default 1.0 ;
         lv2:minimum 0.0 ;
-        lv2:maximum 3.0 ;
-        units:unit units:hz ;
+        lv2:maximum 10.0 ;
     ] , [
         a lv2:InputPort ,
             lv2:ControlPort ;
         lv2:index 1 ;
         lv2:symbol "range" ;
         lv2:name "RANGE";
-        lv2:default 30.0 ;
+        lv2:default 9.2 ;
         lv2:minimum 0.0 ;
-        lv2:maximum 100.0 ;
+        lv2:maximum 10.0 ;
     ] , [
         a lv2:InputPort ,
             lv2:ControlPort ;
         lv2:index 2 ;
         lv2:symbol "color" ;
         lv2:name "COLOR";
-        lv2:default 30.0 ;
-        lv2:minimum -100.0 ;
-        lv2:maximum 100.0 ;
+        lv2:default 6.0 ;
+        lv2:minimum 0.0 ;
+        lv2:maximum 10.0 ;
     ] , [
         a lv2:InputPort ,
             lv2:ControlPort ;
@@ -108,16 +112,27 @@ http://www.metzgerralf.de/elekt/stomp/mistress/index.shtml
         lv2:default 100.0 ;
         lv2:minimum 0.0 ;
         lv2:maximum 100.0 ;
+        units:unit units:pc ;
+    ] , [
+        a lv2:InputPort ,
+            lv2:ControlPort ;
+        lv2:index 4 ;
+        lv2:symbol "matrix" ;
+        lv2:name "MATRIX";
+        lv2:default 0 ;
+        lv2:minimum 0 ;
+        lv2:maximum 1 ;
+        lv2:portProperty lv2:toggled ;
     ] , [
         a lv2:AudioPort ,
             lv2:OutputPort ;
-        lv2:index 4 ;
+        lv2:index 5 ;
         lv2:symbol "out" ;
         lv2:name "Out" ;
     ] , [
         a lv2:AudioPort ,
             lv2:InputPort ;
-        lv2:index 5 ;
+        lv2:index 6 ;
         lv2:symbol "in" ;
         lv2:name "In" ;
     ] .

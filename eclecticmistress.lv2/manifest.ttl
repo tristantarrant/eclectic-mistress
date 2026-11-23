@@ -1,7 +1,28 @@
 @prefix lv2:  <http://lv2plug.in/ns/lv2core#> .
+@prefix pset: <http://lv2plug.in/ns/ext/presets#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
 <http://dataforte.stom-pi/plugins/eclecticmistress>
     a lv2:Plugin ;
     lv2:binary <eclecticmistress.so> ;
     rdfs:seeAlso <eclecticmistress.ttl> .
+
+<http://dataforte.stom-pi/plugins/eclecticmistress#preset-gilmour-animals>
+    a pset:Preset ;
+    lv2:appliesTo <http://dataforte.stom-pi/plugins/eclecticmistress> ;
+    rdfs:seeAlso <presets.ttl> .
+
+<http://dataforte.stom-pi/plugins/eclecticmistress#preset-gilmour-wall>
+    a pset:Preset ;
+    lv2:appliesTo <http://dataforte.stom-pi/plugins/eclecticmistress> ;
+    rdfs:seeAlso <presets.ttl> .
+
+<http://dataforte.stom-pi/plugins/eclecticmistress#preset-summers>
+    a pset:Preset ;
+    lv2:appliesTo <http://dataforte.stom-pi/plugins/eclecticmistress> ;
+    rdfs:seeAlso <presets.ttl> .
+
+<http://dataforte.stom-pi/plugins/eclecticmistress#preset-leslie>
+    a pset:Preset ;
+    lv2:appliesTo <http://dataforte.stom-pi/plugins/eclecticmistress> ;
+    rdfs:seeAlso <presets.ttl> .
