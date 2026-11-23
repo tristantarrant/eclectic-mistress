@@ -14,6 +14,7 @@
 #   make test-clap     CLAP load/process smoke test
 #   make test-all      all of the above
 #   make dsp           regenerate src/eclecticmistress.cc from the .dsp
+#   make screenshot    re-render screenshot.png (README image) from the artwork
 #   make modgui        re-render the modgui images from the artwork
 #   make clean
 
@@ -34,7 +35,7 @@ DSP2CC  ?= /home/tst/Fun/guitarix/trunk/tools/dsp2cc
 
 TTL_GEN := dpf/utils/lv2_ttl_generator
 
-.PHONY: all plugin ttl dsp modgui install install-all test test-clap test-ui test-modgui test-all clean distclean
+.PHONY: screenshot all plugin ttl dsp modgui install install-all test test-clap test-ui test-modgui test-all clean distclean
 
 all: ttl
 
@@ -68,6 +69,10 @@ build/render_modgui: tools/render_modgui.cpp plugins/EclecticMistress/Artwork.hp
 
 modgui: build/render_modgui
 	build/render_modgui modgui
+
+# README image: the pedal at its default settings, 1.5x the design size
+screenshot: build/render_modgui
+	build/render_modgui --preview screenshot.png 1.5
 
 install: ttl
 	mkdir -p "$(DESTDIR)$(INSTALL_DIR)"

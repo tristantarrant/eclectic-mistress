@@ -1,5 +1,9 @@
 # Eclectic Mistress
 
+<p align="center">
+  <img src="screenshot.png" alt="Eclectic Mistress GUI" width="345">
+</p>
+
 Faust-based emulation of the **Electro-Harmonix Electric Mistress**
 flanger, as an LV2 (with a Stom-Pi/MOD modgui), VST3 and CLAP plugin and
 a standalone JACK app, with a scalable GUI that recalls the original
