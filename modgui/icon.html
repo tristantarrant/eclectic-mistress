@@ -1,0 +1,24 @@
+<div class="mod-pedal em-pedal">
+    <div mod-role="drag-handle" class="mod-drag-handle"></div>
+    <div class="em-knob em-rate" mod-role="input-control-port" mod-port-symbol="rate" mod-widget="film"></div>
+    <div class="em-knob em-range" mod-role="input-control-port" mod-port-symbol="range" mod-widget="film"></div>
+    <div class="em-knob em-color" mod-role="input-control-port" mod-port-symbol="color" mod-widget="film"></div>
+    <div class="em-mix" mod-role="input-control-port" mod-port-symbol="mix" mod-widget="film"></div>
+    <div class="em-switch" mod-role="input-control-port" mod-port-symbol="matrix" mod-widget="film"></div>
+    <div class="em-led mod-light" mod-role="bypass-light"></div>
+    <div class="em-foot mod-footswitch" mod-role="bypass"></div>
+    <div class="mod-pedal-input">
+        {{#effect.ports.audio.input}}
+        <div class="mod-input mod-input-disconnected" title="{{name}}" mod-role="input-audio-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-input-image"></div>
+        </div>
+        {{/effect.ports.audio.input}}
+    </div>
+    <div class="mod-pedal-output">
+        {{#effect.ports.audio.output}}
+        <div class="mod-output mod-output-disconnected" title="{{name}}" mod-role="output-audio-port" mod-port-symbol="{{symbol}}">
+            <div class="mod-pedal-output-image"></div>
+        </div>
+        {{/effect.ports.audio.output}}
+    </div>
+</div>

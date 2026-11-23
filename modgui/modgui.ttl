@@ -1,0 +1,13 @@
+@prefix modgui: <http://moddevices.com/ns/modgui#> .
+@prefix lv2:    <http://lv2plug.in/ns/lv2core#> .
+
+<http://dataforte.stom-pi/plugins/eclecticmistress>
+    modgui:gui [
+        modgui:resourcesDirectory <modgui> ;
+        modgui:iconTemplate <modgui/icon.html> ;
+        modgui:stylesheet <modgui/stylesheet.css> ;
+        modgui:screenshot <modgui/screenshot.png> ;
+        modgui:thumbnail <modgui/thumbnail.png> ;
+        modgui:brand "Rustyfoot" ;
+        modgui:label "Eclectic Mistress" ;
+    ] .

@@ -1,7 +1,9 @@
 # Eclectic Mistress
 
-Faust-based LV2 emulation of the **Electro-Harmonix Electric Mistress**
-flanger.
+Faust-based emulation of the **Electro-Harmonix Electric Mistress**
+flanger, as an LV2 (with a Stom-Pi/MOD modgui), VST3 and CLAP plugin and
+a standalone JACK app, with a scalable GUI that recalls the original
+pedal.
 
 The Electric Mistress is a bucket brigade delay (BBD) whose delay time is
 swept by an LFO and mixed with the dry signal to form a swept comb filter.
@@ -90,34 +92,75 @@ Song credits come from [gilmourish.com](https://www.gilmourish.com/?page_id=80)
 | Andy Summers (*De Do Do Do, De Da Da Da*, *Driven to Tears*) | 1.6 | 1.0 | 7.0 | 0.144 Hz, 1.2–2.6 ms |
 | Rotating speaker (EHX manual: "rate near maximum, range near minimum, color approximately half-way") | 9.6 | 2.0 | 4.2 | 6.6 Hz, 1.2–3.5 ms |
 
+## GUI
+
+Both GUIs draw the same pedal, which recalls the 1976 V2: the warm
+silver box, three black knurled knobs in thin rings, the big split-letter
+logo, and the black footswitch field with rounded bottom corners. The
+FLANGE / FILTER MATRIX slide switch (on the original's side panel) sits
+along the top edge, and MIX (not on the pedal) is a small chrome knob in
+the black field. The footswitch toggles bypass, and an LED (a common
+mod; the V2 had none) shows the state. The names and branding are our
+own.
+
+- **Desktop** (LV2, VST3, CLAP, standalone): vector-drawn with cairo, so it
+  scales cleanly to any size. Resize the window freely; the aspect ratio
+  is kept and the host's HiDPI scale factor is honoured. Drag knobs up or
+  down (Shift for fine control), use the mouse wheel, double-click to
+  reset, and click switches and the footswitch.
+- **Stom-Pi / MOD** (modgui): `modgui/` is rendered from the same artwork
+  (`make modgui`), with film-strip knobs and switches at 2x resolution
+  for sharp display on high-DPI screens.
+
+Linux GUIs are X11 (`ui:X11UI`). LV2 defines no Wayland UI type, so on
+Wayland desktops plugin UIs run through XWayland, as in every LV2/VST3
+host today.
+
 ## Building
 
-Requires a C++ compiler; no other dependencies (the LV2 API is header-only).
+Built with [DPF](https://github.com/DISTRHO/DPF) (a git submodule): one
+codebase gives an LV2 bundle (DSP and UI in separate binaries, plus the
+modgui), a VST3, a CLAP and a standalone JACK app. It needs a C++
+compiler; the UI also needs the cairo and X11 development headers, and is
+skipped automatically if they are missing.
 
 ```
-make            # build the .so into eclecticmistress.lv2/
-make test       # build and run the LV2 test harness
-make install    # copy the bundle to /usr/lib/lv2 (override INSTALL_DIR)
-make dsp        # regenerate the faust-generated C++ from the .dsp source
-                # (needs the faust compiler + the guitarix dsp2cc tool)
+git submodule update --init --recursive
+make                # all formats into bin/
+make NOUI=true      # DSP only (headless build hosts such as Stom-Pi)
+make install        # LV2 bundle into /usr/lib/lv2 (INSTALL_DIR=...)
+make install-all    # + VST3, CLAP and the JACK app (VST3_DIR, CLAP_DIR, BIN_DIR)
+make test-all       # DSP, CLAP, UI (Xvfb) and modgui (headless Chrome) tests
+make dsp            # regenerate src/eclecticmistress.cc from the .dsp
+make modgui         # re-render modgui/ from the artwork
 ```
 
 The DSP is written in [Faust](https://faust.grame.fr) (`src/eclecticmistress.dsp`)
-in the same spirit as Guitarix's plugins; the checked-in `src/eclecticmistress.cc`
-was generated from it with the guitarix `dsp2cc` tool
-(`--init-type=plugin-lv2`), and the LV2 wrapper (`src/eclecticmistress.cpp`)
-follows the Guitarix per-plugin wrapper pattern.
+in the same spirit as Guitarix's plugins. The checked-in
+`src/eclecticmistress.cc` was generated from it with the Guitarix `dsp2cc`
+tool (`--init-type=plugin-lv2`), and the DPF plugin class binds its
+controls by the `PortIndex` enum. Presets are DPF programs, exported to
+LV2 `presets.ttl` and to VST3/CLAP from the same list.
+
+The LV2 URI and port symbols (including the audio ports `in`/`out`) are
+unchanged from the earlier hand-written LV2 version, so existing
+pedalboards keep working.
 
 ## Layout
 
 ```
-src/eclecticmistress.dsp     Faust DSP source (authoritative)
-src/eclecticmistress.cc      generated DSP class (regenerate with 'make dsp')
-src/eclecticmistress.h       PortIndex enum + plugin URI
-src/eclecticmistress.cpp     LV2 wrapper (instantiate/activate/run/...)
-src/em_glue.h                minimal glue header for the generated class
-eclecticmistress.lv2/        the LV2 bundle (manifest, plugin TTL, presets, .so)
-tests/em_test.c              LV2 test harness (incl. measured delay/feedback laws)
+src/eclecticmistress.dsp            Faust DSP source (authoritative)
+src/eclecticmistress.cc             generated DSP class ('make dsp')
+src/eclecticmistress.h, em_glue.h   PortIndex enum, glue for the generated class
+plugins/EclecticMistress/           DPF plugin: info, plugin class, UI, artwork
+  Artwork.hpp                       the pedal, drawn with cairo (shared by both GUIs)
+tools/render_modgui.cpp             renders modgui/ (images, HTML, CSS) from the artwork
+modgui/                             generated modgui (checked in)
+tests/em_test.c                     LV2 DSP tests (measured delay/feedback laws, bypass)
+tests/ui_test.c                     X11/XTest UI test host (run under Xvfb)
+tests/modgui_check.py               modgui vs artwork in headless Chrome
+tests/clap_check.c                  CLAP smoke test
+dpf/                                DPF submodule
 ```
 
 ## License

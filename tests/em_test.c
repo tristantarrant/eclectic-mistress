@@ -14,6 +14,8 @@
 #include <math.h>
 #include <dlfcn.h>
 
+#include "lv2host.h"
+
 typedef struct _LV2_Descriptor LV2_Descriptor;
 typedef void *LV2_Handle;
 
@@ -29,9 +31,12 @@ struct _LV2_Descriptor {
   void *reserved;
 };
 
+/* DPF port layout: audio in, audio out, parameters, lv2:enabled */
 enum { RATE, RANGE, COLOR, MIX, MATRIX, NCTRL };
-#define P_OUT 5
-#define P_IN  6
+#define P_IN      0
+#define P_OUT     1
+#define P_CTRL0   2
+#define P_ENABLED 7
 
 /* model constants (must match src/eclecticmistress.dsp) */
 #define D_LO  1.2e-3
@@ -42,6 +47,7 @@ enum { RATE, RANGE, COLOR, MIX, MATRIX, NCTRL };
 static int failures = 0;
 static const LV2_Descriptor *desc;
 static float ctrl[NCTRL];
+static float enabled = 1.0f;
 static float in[BLOCK], out[BLOCK];
 
 static void
@@ -62,11 +68,14 @@ defaults(void)
 static LV2_Handle
 open_plugin(double sr)
 {
-  LV2_Handle h = desc->instantiate(desc, sr, NULL, NULL);
+  LV2_Handle h = desc->instantiate(desc, sr, NULL,
+                                   (const void *const *)host_get_features(BLOCK));
   if (!h)
     return NULL;
   for (int i = 0; i < NCTRL; ++i)
-    desc->connect_port(h, i, &ctrl[i]);
+    desc->connect_port(h, P_CTRL0 + i, &ctrl[i]);
+  enabled = 1.0f;
+  desc->connect_port(h, P_ENABLED, &enabled);
   desc->connect_port(h, P_OUT, out);
   desc->connect_port(h, P_IN, in);
   desc->activate(h);
@@ -192,6 +201,49 @@ main(int argc, char **argv)
     r = sine_rms(h, SR, 437, 0.9, 2.0, &fin);
     check(fin && r < 1.0, m ? "all max, matrix: finite, bounded"
                             : "all max, flange: finite, bounded");
+  }
+  defaults();
+
+  /* --- bypass (lv2:enabled): click-free crossfade to exact dry -------- */
+  /* Warm up engaged, then bypass. During the fade no sample step may
+     exceed the larger of the wet and dry signals' own steady steps. */
+  {
+    long ph = 0;
+    double wetstep = 0, drystep = 0, fadestep = 0, maxdiff = 0, prev = 0;
+    enabled = 1.0f;
+    for (int b = 0; b < 48; ++b) {
+      for (int i = 0; i < BLOCK; ++i, ++ph)
+        in[i] = (float)(0.5 * sin(2.0 * M_PI * 220.0 * ph / SR));
+      desc->run(h, BLOCK);
+      for (int i = 0; i < BLOCK; ++i) {
+        if (b == 47 && i > 0)
+          wetstep = fmax(wetstep, fabs(out[i] - out[i - 1]));
+        if (i > 0 || b > 0)
+          drystep = fmax(drystep, fabs(in[i] - (i ? in[i - 1] : in[i])));
+      }
+      prev = out[BLOCK - 1];
+    }
+    enabled = 0.0f;
+    for (int b = 0; b < 4; ++b) {
+      for (int i = 0; i < BLOCK; ++i, ++ph)
+        in[i] = (float)(0.5 * sin(2.0 * M_PI * 220.0 * ph / SR));
+      desc->run(h, BLOCK);
+      for (int i = 0; i < BLOCK; ++i) {
+        if (b < 2)
+          fadestep = fmax(fadestep, fabs(out[i] - prev));
+        prev = out[i];
+        if (b >= 2)
+          maxdiff = fmax(maxdiff, fabs((double)out[i] - in[i]));
+      }
+    }
+    snprintf(msg, sizeof msg,
+             "bypass fade: max step %.4f (wet %.4f, dry %.4f): no click",
+             fadestep, wetstep, drystep);
+    check(fadestep <= 1.2 * fmax(wetstep, drystep), msg);
+    check(maxdiff < 1e-6, "bypassed: output == input after the 10 ms fade");
+    enabled = 1.0f;
+    r = sine_rms(h, SR, 1000, 0.5, 0.5, &fin);
+    check(fin && r > 0.01, "re-enabled: effect back");
   }
   defaults();
 

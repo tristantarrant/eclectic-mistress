@@ -1,3 +1,4 @@
-*.so
-em_test
+bin/
 build/
+*.so
+__pycache__/
