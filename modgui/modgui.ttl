@@ -8,6 +8,6 @@
         modgui:stylesheet <modgui/stylesheet.css> ;
         modgui:screenshot <modgui/screenshot.png> ;
         modgui:thumbnail <modgui/thumbnail.png> ;
-        modgui:brand "Rustyfoot" ;
+        modgui:brand "Dataforte" ;
         modgui:label "Eclectic Mistress" ;
     ] .

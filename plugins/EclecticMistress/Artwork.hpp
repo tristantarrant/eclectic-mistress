@@ -486,7 +486,7 @@ inline void draw(cairo_t* cr, const State& s, unsigned layers = kLayerAll)
         text(cr, "MIX", MIX_X, MIX_Y + MIX_R + 15, 9.0, { 0.75, 0.75, 0.72 });
 
         // maker line
-        text(cr, "rustyfoot", W / 2, 431, 21, kInk, kCenter, false, "DejaVu Serif");
+        text(cr, "dataforte", W / 2, 431, 21, kInk, kCenter, false, "DejaVu Serif");
     }
 
     if (layers & kLayerKnobs)

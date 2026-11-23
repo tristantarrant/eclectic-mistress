@@ -74,11 +74,11 @@ protected:
                "a BBD comb filter swept 1.2-10.7 ms by a triangle LFO, with COLOR feedback "
                "and the Filter Matrix mode. Controls are pot positions as on the pedal.";
     }
-    const char* getMaker() const override { return "Rustyfoot"; }
+    const char* getMaker() const override { return "Dataforte"; }
     const char* getHomePage() const override { return "https://github.com/tristantarrant/eclectic-mistress"; }
     const char* getLicense() const override { return "GPL-2.0-or-later"; }
     uint32_t getVersion() const override { return d_version(1, 1, 0); }
-    int64_t getUniqueId() const override { return d_cconst('R', 'e', 'M', 's'); }
+    int64_t getUniqueId() const override { return d_cconst('D', 'e', 'M', 's'); }
 
     void initAudioPort(const bool input, const uint32_t index, AudioPort& port) override
     {
