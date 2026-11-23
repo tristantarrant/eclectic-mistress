@@ -111,7 +111,7 @@ test-ui: ttl
 test-clap: ttl
 	mkdir -p build
 	$(CC) -O2 -std=c11 -Idpf/distrho/src -o build/clap_check tests/clap_check.c -ldl -lm
-	build/clap_check bin/$(PLUG).clap pi.stom.dataforte.$(PLUG) 6
+	build/clap_check bin/$(PLUG).clap net.dataforte.$(PLUG) 6
 
 test-all: test test-clap test-ui test-modgui
 
