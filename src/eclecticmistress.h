@@ -3,7 +3,6 @@
 #ifndef EM_ECLECTICMISTRESS_H
 #define EM_ECLECTICMISTRESS_H
 
-#include <lv2.h>
 
 #define EMPLUGIN_URI "http://dataforte.net/plugins/eclecticmistress"
 
