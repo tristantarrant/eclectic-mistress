@@ -1,0 +1,52 @@
+{
+  "$comment": "Source of truth for the Eclectic Mistress presets. Edit this file and run 'make presets' to regenerate plugins/EclecticMistress/Presets.hpp (DPF programs, exported to LV2 presets.ttl and to VST3/CLAP). The parameter order below must match the Parameters enum in DistrhoPluginInfo.h (rate, range, color, mix, matrix); program 0 must equal 'defaults'.",
+  "parameters": ["rate", "range", "color", "mix", "matrix"],
+  "ranges": {
+    "rate":   [0.0, 10.0],
+    "range":  [0.0, 10.0],
+    "color":  [0.0, 10.0],
+    "mix":    [0.0, 100.0],
+    "matrix": [0.0, 1.0]
+  },
+  "defaults": {
+    "rate": 1.0,
+    "range": 9.2,
+    "color": 6.0,
+    "mix": 100.0,
+    "matrix": 0.0
+  },
+  "presets": [
+    {
+      "name": "Gilmour - The Wall tour 1980-81 (Comfortably Numb, Run Like Hell)",
+      "values": { "rate": 1.0, "range": 9.2, "color": 6.0, "mix": 100.0, "matrix": 0.0 },
+      "artist": "David Gilmour",
+      "songs": ["Comfortably Numb", "Run Like Hell"],
+      "sweep": "0.108 Hz, 1.2-9.9 ms",
+      "source": "Metzger's V2/V5 setting diagrams (gilmourish.com song credits)"
+    },
+    {
+      "name": "Gilmour - Animals tour 1977 (Dogs, Pigs)",
+      "values": { "rate": 0.3, "range": 9.2, "color": 6.0, "mix": 100.0, "matrix": 0.0 },
+      "artist": "David Gilmour",
+      "songs": ["Dogs", "Pigs"],
+      "sweep": "0.077 Hz, 1.2-9.9 ms",
+      "source": "Metzger's V2/V5 setting diagrams (gilmourish.com song credits)"
+    },
+    {
+      "name": "Andy Summers - De Do Do Do, De Da Da Da / Driven to Tears",
+      "values": { "rate": 1.6, "range": 1.0, "color": 7.0, "mix": 100.0, "matrix": 0.0 },
+      "artist": "Andy Summers",
+      "songs": ["De Do Do Do, De Da Da Da", "Driven to Tears"],
+      "sweep": "0.144 Hz, 1.2-2.6 ms",
+      "source": "Metzger's setting diagrams"
+    },
+    {
+      "name": "Rotating speaker (Leslie simulation)",
+      "values": { "rate": 9.6, "range": 2.0, "color": 4.2, "mix": 100.0, "matrix": 0.0 },
+      "artist": "",
+      "songs": [],
+      "sweep": "6.6 Hz, 1.2-3.5 ms",
+      "source": "EHX manual: rate near maximum, range near minimum, color about half-way"
+    }
+  ]
+}

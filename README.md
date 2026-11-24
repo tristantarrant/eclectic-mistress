@@ -96,6 +96,13 @@ Song credits come from [gilmourish.com](https://www.gilmourish.com/?page_id=80)
 | Andy Summers (*De Do Do Do, De Da Da Da*, *Driven to Tears*) | 1.6 | 1.0 | 7.0 | 0.144 Hz, 1.2–2.6 ms |
 | Rotating speaker (EHX manual: "rate near maximum, range near minimum, color approximately half-way") | 9.6 | 2.0 | 4.2 | 6.6 Hz, 1.2–3.5 ms |
 
+The table is data, not code: `presets/eclecticmistress.json` is the source of
+truth (names, values, artist/song/sweep metadata). `make presets` regenerates
+the checked-in `plugins/EclecticMistress/Presets.hpp`; the DPF wrapper exposes
+those entries as programs, which DPF exports to LV2 `presets.ttl` and to
+VST3/CLAP. Adding or editing a preset means editing the JSON and running
+`make presets` — no C++ changes.
+
 ## GUI
 
 Both GUIs draw the same pedal, which recalls the 1976 V2: the warm

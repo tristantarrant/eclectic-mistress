@@ -16,24 +16,15 @@
 #include "../../src/eclecticmistress.h"
 #include "../../src/eclecticmistress.cc"
 
+// Preset table and parameter defaults, generated from presets/eclecticmistress.json
+#include "Presets.hpp"
+
 START_NAMESPACE_DISTRHO
 
 // --------------------------------------------------------------------
-// Presets: documented Electric Mistress settings (see README).
-// Program 0 equals the parameter defaults.
-
-struct EmProgram {
-    const char* name;
-    float rate, range, color;
-};
-
-static const EmProgram kPrograms[] = {
-    { "Gilmour - The Wall tour 1980-81 (Comfortably Numb, Run Like Hell)", 1.0f, 9.2f, 6.0f },
-    { "Gilmour - Animals tour 1977 (Dogs, Pigs)",                          0.3f, 9.2f, 6.0f },
-    { "Andy Summers - De Do Do Do, De Da Da Da / Driven to Tears",         1.6f, 1.0f, 7.0f },
-    { "Rotating speaker (Leslie simulation)",                              9.6f, 2.0f, 4.2f },
-};
-static constexpr uint32_t kProgramCount = sizeof(kPrograms) / sizeof(kPrograms[0]);
+// Presets come from presets/eclecticmistress.json via Presets.hpp
+// (make presets). DPF exports them to LV2 presets.ttl and to the
+// VST3/CLAP program lists.
 
 // --------------------------------------------------------------------
 
@@ -41,14 +32,11 @@ class PluginEclecticMistress : public Plugin
 {
 public:
     PluginEclecticMistress()
-        : Plugin(kParamCount, kProgramCount, 0),
+        : Plugin(kParamCount, em_presets::kCount, 0),
           fDsp(eclecticmistress::plugin())
     {
-        fParams[kParamRate]   = kPrograms[0].rate;
-        fParams[kParamRange]  = kPrograms[0].range;
-        fParams[kParamColor]  = kPrograms[0].color;
-        fParams[kParamMix]    = 100.0f;
-        fParams[kParamMatrix] = 0.0f;
+        for (uint32_t i = 0; i <= kParamMatrix; ++i)
+            fParams[i] = em_presets::kDefaults.value[i];
         fParams[kParamBypass] = 0.0f;
 
         for (uint32_t i = 0; i < kParamBypass; ++i)
@@ -99,26 +87,26 @@ protected:
         {
         case kParamRate:
             p.name = "RATE"; p.symbol = "rate";
-            p.ranges.def = kPrograms[0].rate;
+            p.ranges.def = em_presets::kDefaults.value[kParamRate];
             break;
         case kParamRange:
             p.name = "RANGE"; p.symbol = "range";
-            p.ranges.def = kPrograms[0].range;
+            p.ranges.def = em_presets::kDefaults.value[kParamRange];
             break;
         case kParamColor:
             p.name = "COLOR"; p.symbol = "color";
-            p.ranges.def = kPrograms[0].color;
+            p.ranges.def = em_presets::kDefaults.value[kParamColor];
             break;
         case kParamMix:
             p.name = "MIX"; p.symbol = "mix"; p.unit = "%";
             p.ranges.max = 100.0f;
-            p.ranges.def = 100.0f;
+            p.ranges.def = em_presets::kDefaults.value[kParamMix];
             break;
         case kParamMatrix:
             p.hints |= kParameterIsBoolean | kParameterIsInteger;
             p.name = "MATRIX"; p.symbol = "matrix";
             p.ranges.max = 1.0f;
-            p.ranges.def = 0.0f;
+            p.ranges.def = em_presets::kDefaults.value[kParamMatrix];
             break;
         case kParamBypass:
             p.initDesignation(kParameterDesignationBypass);
@@ -128,19 +116,16 @@ protected:
 
     void initProgramName(const uint32_t index, String& name) override
     {
-        if (index < kProgramCount)
-            name = kPrograms[index].name;
+        if (index < em_presets::kCount)
+            name = em_presets::kEntries[index].name;
     }
 
     void loadProgram(const uint32_t index) override
     {
-        if (index >= kProgramCount)
+        if (index >= em_presets::kCount)
             return;
-        fParams[kParamRate]   = kPrograms[index].rate;
-        fParams[kParamRange]  = kPrograms[index].range;
-        fParams[kParamColor]  = kPrograms[index].color;
-        fParams[kParamMix]    = 100.0f;
-        fParams[kParamMatrix] = 0.0f;
+        for (uint32_t i = 0; i <= kParamMatrix; ++i)
+            fParams[i] = em_presets::kEntries[index].value[i];
     }
 
     float getParameterValue(const uint32_t index) const override
