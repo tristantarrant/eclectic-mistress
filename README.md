@@ -5,7 +5,7 @@
 </p>
 
 Faust-based emulation of the **Electro-Harmonix Electric Mistress**
-flanger, as an LV2 (with a Stom-Pi/MOD modgui), VST3 and CLAP plugin and
+flanger, as an LV2 (with a modgui), VST3 and CLAP plugin and
 a standalone JACK app, with a scalable GUI that recalls the original
 pedal.
 
@@ -112,7 +112,7 @@ own.
   is kept and the host's HiDPI scale factor is honoured. Drag knobs up or
   down (Shift for fine control), use the mouse wheel, double-click to
   reset, and click switches and the footswitch.
-- **Stom-Pi / MOD** (modgui): `modgui/` is rendered from the same artwork
+- **modgui**: `modgui/` is rendered from the same artwork
   (`make modgui`), with film-strip knobs and switches at 2x resolution
   for sharp display on high-DPI screens.
 
@@ -131,7 +131,7 @@ skipped automatically if they are missing.
 ```
 git submodule update --init --recursive
 make                # all formats into bin/
-make NOUI=true      # DSP only (headless build hosts such as Stom-Pi)
+make NOUI=true      # DSP only (build hosts without cairo/X11)
 make install        # LV2 bundle into /usr/lib/lv2 (INSTALL_DIR=...)
 make install-all    # + VST3, CLAP and the JACK app (VST3_DIR, CLAP_DIR, BIN_DIR)
 make test-all       # DSP, CLAP, UI (Xvfb) and modgui (headless Chrome) tests
