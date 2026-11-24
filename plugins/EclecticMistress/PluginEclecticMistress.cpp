@@ -32,11 +32,11 @@ class PluginEclecticMistress : public Plugin
 {
 public:
     PluginEclecticMistress()
-        : Plugin(kParamCount, em_presets::kCount, 0),
+        : Plugin(kParamCount, preset_data::kCount, 0),
           fDsp(eclecticmistress::plugin())
     {
         for (uint32_t i = 0; i <= kParamMatrix; ++i)
-            fParams[i] = em_presets::kDefaults.value[i];
+            fParams[i] = preset_data::kDefaults.value[i];
         fParams[kParamBypass] = 0.0f;
 
         for (uint32_t i = 0; i < kParamBypass; ++i)
@@ -87,26 +87,26 @@ protected:
         {
         case kParamRate:
             p.name = "RATE"; p.symbol = "rate";
-            p.ranges.def = em_presets::kDefaults.value[kParamRate];
+            p.ranges.def = preset_data::kDefaults.value[kParamRate];
             break;
         case kParamRange:
             p.name = "RANGE"; p.symbol = "range";
-            p.ranges.def = em_presets::kDefaults.value[kParamRange];
+            p.ranges.def = preset_data::kDefaults.value[kParamRange];
             break;
         case kParamColor:
             p.name = "COLOR"; p.symbol = "color";
-            p.ranges.def = em_presets::kDefaults.value[kParamColor];
+            p.ranges.def = preset_data::kDefaults.value[kParamColor];
             break;
         case kParamMix:
             p.name = "MIX"; p.symbol = "mix"; p.unit = "%";
             p.ranges.max = 100.0f;
-            p.ranges.def = em_presets::kDefaults.value[kParamMix];
+            p.ranges.def = preset_data::kDefaults.value[kParamMix];
             break;
         case kParamMatrix:
             p.hints |= kParameterIsBoolean | kParameterIsInteger;
             p.name = "MATRIX"; p.symbol = "matrix";
             p.ranges.max = 1.0f;
-            p.ranges.def = em_presets::kDefaults.value[kParamMatrix];
+            p.ranges.def = preset_data::kDefaults.value[kParamMatrix];
             break;
         case kParamBypass:
             p.initDesignation(kParameterDesignationBypass);
@@ -116,16 +116,16 @@ protected:
 
     void initProgramName(const uint32_t index, String& name) override
     {
-        if (index < em_presets::kCount)
-            name = em_presets::kEntries[index].name;
+        if (index < preset_data::kCount)
+            name = preset_data::kEntries[index].name;
     }
 
     void loadProgram(const uint32_t index) override
     {
-        if (index >= em_presets::kCount)
+        if (index >= preset_data::kCount)
             return;
         for (uint32_t i = 0; i <= kParamMatrix; ++i)
-            fParams[i] = em_presets::kEntries[index].value[i];
+            fParams[i] = preset_data::kEntries[index].value[i];
     }
 
     float getParameterValue(const uint32_t index) const override
