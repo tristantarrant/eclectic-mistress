@@ -127,6 +127,8 @@ Linux GUIs are X11 (`ui:X11UI`). LV2 defines no Wayland UI type, so on
 Wayland desktops plugin UIs run through XWayland, as in every LV2/VST3
 host today.
 
+House rule: **pedal-face UIs use cairo** (CPU raster, no OpenGL), so the desktop UI, the modgui and the screenshots come from the same drawing code.
+
 ## Building
 
 Built with [DPF](https://github.com/DISTRHO/DPF) (a git submodule): one
