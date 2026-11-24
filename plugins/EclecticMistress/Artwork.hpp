@@ -19,6 +19,8 @@
 
 #include <cairo.h>
 #include <cmath>
+
+#include "BrandPath.hpp"
 #include <cstring>
 
 namespace em_art {
@@ -485,8 +487,10 @@ inline void draw(cairo_t* cr, const State& s, unsigned layers = kLayerAll)
         footswitch(cr, FOOT_X, FOOT_Y);
         text(cr, "MIX", MIX_X, MIX_Y + MIX_R + 15, 9.0, { 0.75, 0.75, 0.72 });
 
-        // maker line
-        text(cr, "dataforte", W / 2, 431, 21, kInk, kCenter, false, "DejaVu Serif");
+        // maker line: Bitcount Grid Double wordmark baked by tools/gen_brand.py,
+        // so the cairo UI and the modgui match without the font installed
+        set(cr, kInk);
+        em_brand::draw(cr, W / 2, 431, 21.0);
     }
 
     if (layers & kLayerKnobs)

@@ -14,6 +14,7 @@
 #   make test-clap     CLAP load/process smoke test
 #   make test-all      all of the above
 #   make dsp           regenerate src/eclecticmistress.cc from the .dsp
+#   make brand         regenerate plugins/EclecticMistress/BrandPath.hpp (needs fontTools)
 #   make screenshot    re-render screenshot.png (README image) from the artwork
 #   make modgui        re-render the modgui images from the artwork
 #   make clean
@@ -35,7 +36,7 @@ DSP2CC  ?= /home/tst/Fun/guitarix/trunk/tools/dsp2cc
 
 TTL_GEN := dpf/utils/lv2_ttl_generator
 
-.PHONY: screenshot all plugin ttl dsp modgui install install-all test test-clap test-ui test-modgui test-all clean distclean
+.PHONY: screenshot all plugin ttl dsp brand modgui install install-all test test-clap test-ui test-modgui test-all clean distclean
 
 all: ttl
 
@@ -62,6 +63,9 @@ ttl: plugin $(TTL_GEN)
 
 dsp:
 	python3 $(DSP2CC) --init-type=plugin-lv2 -double -o $(CC_GEN) $(DSP)
+
+brand:
+	python3 tools/gen_brand.py --font Bitcount --text dataforte --ns em_brand --out BrandPath.hpp
 
 build/render_modgui: tools/render_modgui.cpp plugins/EclecticMistress/Artwork.hpp
 	mkdir -p build
